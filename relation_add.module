@@ -55,6 +55,8 @@ function relation_add_block_form($form, &$form_state) {
     // Get the entity for the current page. This fails for taxonomy entities.
     // Need a better way. Also, this will never really work for comments, or
     // files, or other entities that don't have their own page.
+    
+    
     $all_entities = array_keys(entity_get_info());
     $path = menu_get_item();
 
@@ -93,13 +95,25 @@ function relation_add_block_form($form, &$form_state) {
       );
       return $form;
     }
-
+    
+    // Here we change the value of the first node of the transaction, from the entity of the current page to the logged in user.
+    global $user;
     $form['current_entity'] = array(
       '#type'           => 'textfield',
       '#title'          => t('Make a transaction from'),
-      '#value'          => $label,
+      '#value'          => $label, // $user
       '#disabled'       => TRUE,
     );
+    
+
+    // Me: Reading the current user logged in (to be used as first entity)
+    // to be positioned better
+    // more here: http://api.drupal.org/api/drupal/developer%21globals.php/global/user/7#comment-13744
+    global $user;
+    print $user->mail;
+    print $user->uid;
+    print $user->name;
+
 
     // Relation type selector. On change, rest of form is loaded via ajax.
 
@@ -123,8 +137,8 @@ function relation_add_block_form($form, &$form_state) {
       '#markup' => t('Gives a FAB to...'),
       '#suffix' => '</div>',
     );
-  
- if (!empty($form_state['values']['relation_type'])) {
+
+if (!empty($form_state['values']['relation_type'])) {
     // Remove ':reverse' suffix if it exists, and set reverse flag
     $type_array = explode(':', $form_state['values']['relation_type']);
     $type = $type_array[0];
@@ -144,6 +158,7 @@ function relation_add_block_form($form, &$form_state) {
       'effect' => 'fade',
     ),
   );
+  
 
   $form['relation_options'] = array(
 //    '#type'           => 'fieldset',
@@ -172,7 +187,7 @@ function relation_add_block_form($form, &$form_state) {
     $form['relation_options']['save'] = array(
       '#type'   => 'submit',
       '#weight' => 100,
-      '#value'  => t('Create relation'),
+      '#value'  => t('Make the transaction'),
       '#submit' => array('relation_add_save'),
     );
   }
@@ -259,8 +274,9 @@ function relation_add_save($form, &$form_state) {
     foreach ($entity_keys as $entity_key) {
       $list['#items'][] = $entity_key['entity_label'];
     }
+    print $list;
     $rendered_list = drupal_render($list);
-    $message = t('Created new !link from !list', array('!link' => $link, '!list' => $rendered_list));
+    $message = t('Created a new FABMoney transaction from !list', array('!link' => $link, '!list' => $rendered_list));
     drupal_set_message($message);
   }
   else {
@@ -332,8 +348,8 @@ function relation_add_autocomplete($type = '', $direction = 'target', $string = 
 function relation_add_field_info() {
   return array(
     'relation_add' => array(
-      'label' => t('Relation add'),
-      'description' => t('Stores relationships between entities.'),
+      'label' => t('FABMoney transaction'),
+      'description' => t('Stores transactions between users.'),
       'settings' => array(),
       'default_widget' => 'relation_add_default',
       'default_formatter' => 'relation_add_endpoints_and_fields',
