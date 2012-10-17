@@ -134,7 +134,6 @@ function relation_add_block_form($form, &$form_state) {
   $type = 'gives_a_fab_to';
   $form['explain_transaction']['explanation'] = array(
       '#prefix' => '<div id=\'relation-add-explanation\'>',
-      '#markup' => t('Gives a FAB to...'),
       '#suffix' => '</div>',
     );
 
@@ -145,7 +144,7 @@ if (!empty($form_state['values']['relation_type'])) {
     $form_state['relation_reverse'] = (isset($type_array[1])  && $type_array[1] == 'reverse');
   }
   $form['relation_type'] = array(
-    '#type'          => 'select',
+    '#type'          => 'hidden',
     '#title'         => t('Relation type'),
     '#default_value' => $type,
     '#options'       => $form_state['types'],
@@ -161,23 +160,24 @@ if (!empty($form_state['values']['relation_type'])) {
   
 
   $form['relation_options'] = array(
-//    '#type'           => 'fieldset',
-//    '#title'          => t('Relation options'),
     '#prefix' => '<div id="relation-add-options">',
     '#suffix' => '</div>',
   );
 
+  
+
   // AJAXification.
-  if (!empty($form_state['values']['relation_type'])) {
+  //if (!empty($form_state['values']['relation_type'])) {
     $relation_type = relation_type_load($type);
     $relation = (object) relation_create($type, array());
+    $form_state['relation_reverse'] = '';
 
     // Create one autocomplete for each endpoint beyond the first
     $direction = $form_state['relation_reverse'] ? '/source' : '/target';
     for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
       $form['relation_options']['targets']['target_' . $i] = array(
         '#type' => 'textfield',
-        '#title' => t('Receiver', array('@num' => $i)),
+        '#title' => t('to...', array('@num' => $i)),
         '#autocomplete_path' => 'relation_add/autocomplete/' . $type . $direction,
       );
     }
@@ -190,15 +190,7 @@ if (!empty($form_state['values']['relation_type'])) {
       '#value'  => t('Make the transaction'),
       '#submit' => array('relation_add_save'),
     );
-  }
-
-  else {
-    $form['relation_options']['explanation'] = array(
-      '#prefix' => '<div id=\'relation-add-explanation\'>',
-      '#markup' => t('This block allows you to create a relation from the current entity (the one displayed on this page), to another one. Please select a relation type.'),
-      '#suffix' => '</div>',
-    );
-  }
+  //}
 
   return $form;
 }
