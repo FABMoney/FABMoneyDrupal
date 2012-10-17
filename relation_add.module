@@ -68,6 +68,10 @@ function relation_add_block_form($form, &$form_state) {
       $entity_type = 'taxonomy_term';
       $entity = $path['map'][2];
     }
+	
+	// Assigning the current logged in user as the first entity
+	global $user;
+	$entity = $user;
 
     if (!isset($entity)) {
       $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
@@ -101,18 +105,9 @@ function relation_add_block_form($form, &$form_state) {
     $form['current_entity'] = array(
       '#type'           => 'textfield',
       '#title'          => t('Make a transaction from'),
-      '#value'          => $label, // $user
+      '#value'          => $label, // was: $label
       '#disabled'       => TRUE,
     );
-    
-
-    // Me: Reading the current user logged in (to be used as first entity)
-    // to be positioned better
-    // more here: http://api.drupal.org/api/drupal/developer%21globals.php/global/user/7#comment-13744
-    global $user;
-    print $user->mail;
-    print $user->uid;
-    print $user->name;
 
 
     // Relation type selector. On change, rest of form is loaded via ajax.
