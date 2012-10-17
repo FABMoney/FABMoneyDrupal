@@ -51,45 +51,22 @@ function relation_add_block_form($form, &$form_state) {
 
   if (!isset($form_state['triggering_element']['#ajax'])) {
     // This stuff is only relevant if we're NOT in an AJAX call.
-
-    // Get the entity for the current page. This fails for taxonomy entities.
-    // Need a better way. Also, this will never really work for comments, or
-    // files, or other entities that don't have their own page.
-    
-    
-    $all_entities = array_keys(entity_get_info());
-    $path = menu_get_item();
-
-    if (count($path['map']) >= 2 && in_array($path['map'][0], $all_entities) && is_object($path['map'][1])) {
-      $entity_type = $path['map'][0];
-      $entity = $path['map'][1];
-    }
-    elseif (count($path['map']) >= 3 && $path['map'][0] == 'taxonomy' && is_object($path['map'][2])) {
-      $entity_type = 'taxonomy_term';
-      $entity = $path['map'][2];
-    }
 	
 	// Assigning the current logged in user as the first entity
 	global $user;
+	$entity_type = 'user';
 	$entity = $user;
-	//$relation_types = 'gives_a_fab_to';
+	$relation_types = 'gives_a_fab_to';
 
-    if (!isset($entity)) {
-      $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
-      return $form;
-    }
-    else {
-      // If we have an $entity, then we have an $entity_type.
       $entity_label = entity_label($entity_type, $entity);
       list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
       $label = $entity_label . ' [' . $entity_type . ':' . $id . ']';
       $relation_types = relation_get_available_types($entity_type, $bundle);
       $reverse_types = relation_get_available_types($entity_type, $bundle, 'target');
       $form_state['relation_add'] = $label;
-    }
 
 
-    // Here we change the value of the first node of the transaction, from the entity of the current page to the logged in user.
+    // Here we change the value of the first node of the transaction
     global $user;
     $form['current_entity'] = array(
       '#type'           => 'hidden', // was: textfield
@@ -153,6 +130,8 @@ if (!empty($form_state['values']['relation_type'])) {
     $relation_type = relation_type_load($type);
     $relation = (object) relation_create($type, array());
     $form_state['relation_reverse'] = '';
+
+	// Here we should check that the user is not sending FABMoney to itself
 
     // Create one autocomplete for each endpoint beyond the first
     $direction = $form_state['relation_reverse'] ? '/source' : '/target';
