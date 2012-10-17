@@ -1,0 +1,14 @@
+name = FABMoney transaction
+description = A block and a field to help create FABMoney transactions from the current logged in user to other users.
+core = 7.x
+package = Relation
+dependencies[] = relation
+dependencies[] = block
+stylesheets[all][] = fabmoney_transaction.css
+
+; Information added by drupal.org packaging script on 2012-05-30
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "fabmoney_transaction"
+datestamp = "1338411100"
+

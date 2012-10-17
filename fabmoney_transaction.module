@@ -24,7 +24,7 @@ function relation_add_menu() {
 function relation_add_block_info() {
   return array(
     'block' => array(
-      'info' => t('Make a FAB transaction'),
+      'info' => t('Make a FABMoney transaction'),
     ),
   );
 }
@@ -36,7 +36,7 @@ function relation_add_block_view() {
   if (!(user_access('gives a FAB to') || user_access('create relations'))) {
     return NULL;
   };
-  $block['subject'] = t('Make a FAB transaction');
+  $block['subject'] = t('Make a FABMoney transaction to:');
   $block['content'] = drupal_get_form('relation_add_block_form');
   return $block;
 }
@@ -72,6 +72,7 @@ function relation_add_block_form($form, &$form_state) {
 	// Assigning the current logged in user as the first entity
 	global $user;
 	$entity = $user;
+	//$relation_types = 'gives_a_fab_to';
 
     if (!isset($entity)) {
       $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
@@ -87,23 +88,11 @@ function relation_add_block_form($form, &$form_state) {
       $form_state['relation_add'] = $label;
     }
 
-    if (empty($relation_types) && empty($reverse_types)) {
-      // Act as helper block if no relation types are defined.
-      $form['explanation']['#markup'] = t(
-        'Before you can create relations from entities of this bundle type (!bundle), you need to create one or more !link that include the bundle in the allowed bundles list.
-        Once you\'ve done that, visit any page displays an entity, and use this block to add a new relation from that entity.',
-        array(
-          '!bundle' => $entity_type . ':' . $bundle,
-          '!link' => l(t('relation types'), 'admin/structure/relation'),
-        )
-      );
-      return $form;
-    }
-    
+
     // Here we change the value of the first node of the transaction, from the entity of the current page to the logged in user.
     global $user;
     $form['current_entity'] = array(
-      '#type'           => 'textfield',
+      '#type'           => 'hidden', // was: textfield
       '#title'          => t('Make a transaction from'),
       '#value'          => $label, // was: $label
       '#disabled'       => TRUE,
@@ -159,8 +148,6 @@ if (!empty($form_state['values']['relation_type'])) {
     '#suffix' => '</div>',
   );
 
-  
-
   // AJAXification.
   //if (!empty($form_state['values']['relation_type'])) {
     $relation_type = relation_type_load($type);
@@ -172,7 +159,7 @@ if (!empty($form_state['values']['relation_type'])) {
     for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
       $form['relation_options']['targets']['target_' . $i] = array(
         '#type' => 'textfield',
-        '#title' => t('to...', array('@num' => $i)),
+        '#title' => t('', array('@num' => $i)),
         '#autocomplete_path' => 'relation_add/autocomplete/' . $type . $direction,
       );
     }
@@ -263,7 +250,7 @@ function relation_add_save($form, &$form_state) {
     }
     print $list;
     $rendered_list = drupal_render($list);
-    $message = t('Created a new FABMoney transaction from !list', array('!link' => $link, '!list' => $rendered_list));
+    $message = t('Created a new FABMoney transaction: !list', array('!link' => $link, '!list' => $rendered_list));
     drupal_set_message($message);
   }
   else {
