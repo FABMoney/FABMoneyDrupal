@@ -131,8 +131,6 @@ if (!empty($form_state['values']['relation_type'])) {
     $relation = (object) relation_create($type, array());
     $form_state['relation_reverse'] = '';
 
-	// Here we should check that the user is not sending FABMoney to itself
-
     // Create one autocomplete for each endpoint beyond the first
     $direction = $form_state['relation_reverse'] ? '/source' : '/target';
     for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
@@ -215,11 +213,18 @@ function relation_add_save($form, &$form_state) {
       );
     }
   }
+  
+  	// Here we check that the two nodes of the relations are the same, i.e. the user is giving FABs to himself/herself
+
+if ($entity_keys[0]['entity_id']==$entity_keys[1]['entity_id']) {
+$rid = false; 
+}
+ else {
   // @TODO: IF count(entity_keys) != count (entity_strings), FAIL.
   $relation = relation_create($type, $entity_keys);
   entity_form_submit_build_entity('relation', $relation, $form['relation_options'], $form_state);
-  $rid = relation_save($relation);
-
+  $rid = relation_save($relation); 
+}
   if ($rid) {
     $link = l($type, "relation/$rid");
     // See also _relation_stored_entity_keys_list() in relation_entity_collector.module
@@ -229,12 +234,19 @@ function relation_add_save($form, &$form_state) {
     }
     print $list;
     $rendered_list = drupal_render($list);
-    $message = t('Created a new FABMoney transaction: !list', array('!link' => $link, '!list' => $rendered_list));
+    
+    $user=user_load($entity_keys[0]['entity_id']);
+	$username1=$user->name;
+	$user=user_load($entity_keys[1]['entity_id']);
+	$username2=$user->name;
+	
+    $message = t('Created a new FABMoney transaction from '.$username1.' to '.$username2.'.');
     drupal_set_message($message);
   }
   else {
-    drupal_set_message(t('Transaction not created.'), 'error');
-  }
+    drupal_set_message(t('Transaction not created. There was an error or you were giving a FAB to yourself (which is forbidden)!'), 'error');
+  
+ }
 }
 
 /**
